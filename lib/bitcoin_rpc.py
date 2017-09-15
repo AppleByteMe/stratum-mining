@@ -11,6 +11,8 @@ import time
 import lib.logger
 log = lib.logger.get_logger('bitcoin_rpc')
 
+gbt_known_rules = ["segwit"]
+
 class BitcoinRPC(object):
     
     def __init__(self, host, port, username, password):
@@ -129,7 +131,7 @@ class BitcoinRPC(object):
     @defer.inlineCallbacks
     def getblocktemplate(self):
         try:
-            resp = (yield self._call('getblocktemplate', [{}]))
+            resp = (yield self._call('getblocktemplate', [{"rules": gbt_known_rules}]))
             defer.returnValue(json.loads(resp)['result'])
         # if internal server error try getblocktemplate without empty {} # ppcoin
         except Exception as e:
@@ -138,12 +140,12 @@ class BitcoinRPC(object):
                 defer.returnValue(json.loads(resp)['result'])
             else:
                 raise
-                                                  
+
     @defer.inlineCallbacks
     def prevhash(self):
-        resp = (yield self._call('getwork', []))
+        resp = (yield self._call('getbestblockhash', []))
         try:
-            defer.returnValue(json.loads(resp)['result']['data'][8:72])
+            defer.returnValue(json.loads(resp)['result'])
         except Exception as e:
             log.exception("Cannot decode prevhash %s" % str(e))
             raise
